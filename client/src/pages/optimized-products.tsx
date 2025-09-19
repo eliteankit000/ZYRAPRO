@@ -149,7 +149,6 @@ export default function OptimizedProducts() {
           </div>
         </div>
       </header>
-
       {/* Main Content */}
       <div className="p-4 sm:p-6 space-y-6">
         {/* Summary Cards */}
@@ -207,7 +206,7 @@ export default function OptimizedProducts() {
           </CardHeader>
           <CardContent className="space-y-4">
             {optimizedProducts.map((product) => (
-              <div key={product.id} className="bg-slate-800/30 rounded-lg p-4 space-y-4">
+              <div key={product.id} className="rounded-lg p-4 space-y-4 bg-[#041e47]">
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="text-white font-semibold text-lg">{product.name}</h3>
