@@ -15,6 +15,11 @@ export const users = pgTable("users", {
   stripeSubscriptionId: text("stripe_subscription_id"),
   imageUrl: text("image_url"),
   preferredLanguage: text("preferred_language").default("en"),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false),
+  twoFactorSecret: text("two_factor_secret"),
+  emailNotifications: boolean("email_notifications").default(true),
+  pushNotifications: boolean("push_notifications").default(true),
+  marketingEmails: boolean("marketing_emails").default(false),
   createdAt: timestamp("created_at").default(sql`NOW()`),
 });
 
@@ -103,6 +108,10 @@ export const profiles = pgTable("profiles", {
   bio: text("bio"),
   profileImage: text("profile_image"),
   preferences: jsonb("preferences"),
+  aiPreferences: jsonb("ai_preferences").default('{"brandVoice": "casual", "contentStyle": "sales", "autoSave": true, "scheduledUpdates": "quarterly"}'),
+  notificationSettings: jsonb("notification_settings").default('{"email": true, "push": true, "marketing": false, "performance": true}'),
+  integrationSettings: jsonb("integration_settings").default('{}'),
+  securitySettings: jsonb("security_settings").default('{"loginAlerts": true, "apiKeyRotation": "monthly"}'),
   createdAt: timestamp("created_at").default(sql`NOW()`),
   updatedAt: timestamp("updated_at").default(sql`NOW()`),
 });
