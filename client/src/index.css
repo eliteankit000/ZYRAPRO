@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(220, 40%, 2%);
+  --foreground: hsl(210, 40%, 98%);
+  --card: hsl(220, 30%, 6%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --popover: hsl(220, 30%, 6%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --primary: hsl(200, 85%, 75%);
+  --primary-foreground: hsl(220, 40%, 2%);
+  --secondary: hsl(210, 30%, 35%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --muted: hsl(220, 20%, 14%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --accent: hsl(198, 100%, 88%);
+  --accent-foreground: hsl(220, 40%, 2%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(215, 25%, 20%);
+  --input: hsl(215, 25%, 20%);
+  --ring: hsl(200, 85%, 75%);
+  --chart-1: hsl(200, 85%, 75%);
+  --chart-2: hsl(210, 30%, 35%);
+  --chart-3: hsl(198, 100%, 88%);
+  --chart-4: hsl(220, 20%, 14%);
+  --chart-5: hsl(215, 20%, 65%);
+  --sidebar: hsl(220, 30%, 6%);
+  --sidebar-foreground: hsl(210, 40%, 98%);
+  --sidebar-primary: hsl(200, 85%, 75%);
+  --sidebar-primary-foreground: hsl(220, 40%, 2%);
+  --sidebar-accent: hsl(220, 20%, 14%);
+  --sidebar-accent-foreground: hsl(198, 100%, 88%);
+  --sidebar-border: hsl(215, 25%, 20%);
+  --sidebar-ring: hsl(200, 85%, 75%);
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 12px;
+}
+
+.dark {
+  --background: hsl(220, 40%, 2%);
+  --foreground: hsl(210, 40%, 98%);
+  --card: hsl(220, 30%, 6%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --popover: hsl(220, 30%, 6%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --primary: hsl(200, 85%, 75%);
+  --primary-foreground: hsl(220, 40%, 2%);
+  --secondary: hsl(210, 30%, 35%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --muted: hsl(220, 20%, 14%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --accent: hsl(198, 100%, 88%);
+  --accent-foreground: hsl(220, 40%, 2%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(215, 25%, 20%);
+  --input: hsl(215, 25%, 20%);
+  --ring: hsl(200, 85%, 75%);
+  --chart-1: hsl(200, 85%, 75%);
+  --chart-2: hsl(210, 30%, 35%);
+  --chart-3: hsl(198, 100%, 88%);
+  --chart-4: hsl(220, 20%, 14%);
+  --chart-5: hsl(215, 20%, 65%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased text-foreground;
+    background: linear-gradient(135deg, #021024 0%, #052659 50%, #5483B3 100%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .gradient-card {
+    background: linear-gradient(135deg, rgba(84, 131, 179, 0.1) 0%, rgba(125, 160, 202, 0.05) 100%);
+    border: 1px solid rgba(125, 160, 202, 0.2);
+    backdrop-filter: blur(10px);
+  }
+
+  .gradient-button {
+    background: linear-gradient(135deg, #7DA0CA 0%, #C1E8FF 100%);
+    color: #021024;
+    transition: all 0.3s ease;
+  }
+
+  .gradient-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(193, 232, 255, 0.3);
+  }
+
+  .sidebar-gradient {
+    background: linear-gradient(180deg, rgba(2, 16, 36, 0.95) 0%, rgba(5, 38, 89, 0.9) 100%);
+    backdrop-filter: blur(10px);
+  }
+
+  .stat-card {
+    background: linear-gradient(135deg, rgba(125, 160, 202, 0.15) 0%, rgba(193, 232, 255, 0.05) 100%);
+    border: 1px solid rgba(125, 160, 202, 0.3);
+  }
+
+  .form-input {
+    background: rgba(5, 38, 89, 0.3);
+    border: 1px solid rgba(125, 160, 202, 0.3);
+    backdrop-filter: blur(5px);
+  }
+
+  .form-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(125, 160, 202, 0.1);
+  }
+
+  .active-tab {
+    background: linear-gradient(135deg, #7DA0CA 0%, #C1E8FF 100%);
+    color: #021024;
+  }
+
+  .pricing-card {
+    background: linear-gradient(135deg, rgba(125, 160, 202, 0.1) 0%, rgba(193, 232, 255, 0.05) 100%);
+    border: 2px solid rgba(125, 160, 202, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .pricing-card:hover {
+    border-color: rgba(125, 160, 202, 0.5);
+    transform: translateY(-5px);
+  }
+
+  .feature-highlight {
+    background: linear-gradient(135deg, rgba(193, 232, 255, 0.15) 0%, rgba(125, 160, 202, 0.1) 100%);
+  }
+}
