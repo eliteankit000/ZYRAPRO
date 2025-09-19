@@ -174,12 +174,12 @@ export default function Settings() {
   const handleSettingsAction = (cardId: string) => {
     // Handle specific navigation pages
     if (cardId === 'profile-account') {
-      setLocation('/profile');
+      setLocation('/settings/profile-account');
       return;
     }
     
     if (cardId === 'subscription-billing') {
-      setLocation('/billing');
+      setLocation('/settings/subscription-billing');
       return;
     }
     

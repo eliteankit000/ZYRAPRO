@@ -52,6 +52,12 @@ export interface IStorage {
   updateStoreConnection(id: string, updates: Partial<StoreConnection>): Promise<StoreConnection>;
   deleteStoreConnection(id: string): Promise<void>;
 
+  // Subscription/billing placeholder methods
+  getUserSubscription(userId: string): Promise<any>;
+  getUserUsageStats(userId: string): Promise<any>;
+  getUserInvoices(userId: string): Promise<any>;
+  getUserPaymentMethods(userId: string): Promise<any>;
+
   // Product methods
   getProducts(userId: string): Promise<Product[]>;
   getProduct(id: string): Promise<Product | undefined>;
@@ -97,11 +103,6 @@ export interface IStorage {
   updateUsageStats(userId: string, statField: string, increment: number): Promise<void>;
   generateSampleMetrics(userId: string): Promise<void>;
 
-  // Billing methods
-  getUserSubscription(userId: string): Promise<any>;
-  getUserUsageStats(userId: string): Promise<any>;
-  getUserInvoices(userId: string): Promise<any[]>;
-  getUserPaymentMethods(userId: string): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -414,6 +415,11 @@ export class MemStorage implements IStorage {
       stripeSubscriptionId: null,
       imageUrl: null,
       preferredLanguage: "en",
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      emailNotifications: true,
+      pushNotifications: true,
+      marketingEmails: false,
       createdAt: new Date(),
     };
     this.users.set(id, user);

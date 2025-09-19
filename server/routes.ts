@@ -27,7 +27,7 @@ const openai = new OpenAI({
 let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: "2025-08-27.basil",
+    apiVersion: "2024-12-18.acacia",
   });
 }
 
@@ -181,9 +181,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: user.id, 
         email: user.email, 
         fullName: user.fullName, 
-        plan: user.plan 
+        plan: user.plan,
+        role: user.role || 'user',
+        preferredLanguage: user.preferredLanguage || 'en',
+        imageUrl: user.imageUrl || null
       } 
     });
+  });
+
+  // Update user profile
+  app.put("/api/profile", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      const { fullName, email, preferredLanguage, imageUrl } = req.body;
+
+      // Validate input
+      if (!fullName || fullName.trim().length === 0) {
+        return res.status(400).json({ error: "Full name is required" });
+      }
+
+      if (email && email !== user.email) {
+        // Check if email is already taken by another user
+        const existingUser = await storage.getUserByEmail(email);
+        if (existingUser && existingUser.id !== user.id) {
+          return res.status(400).json({ error: "Email address is already in use" });
+        }
+      }
+
+      const updatedUser = await storage.updateUser(user.id, {
+        fullName: fullName.trim(),
+        email: email || user.email,
+        preferredLanguage: preferredLanguage || 'en',
+        imageUrl: imageUrl || null
+      });
+
+      res.json({ 
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          fullName: updatedUser.fullName,
+          plan: updatedUser.plan,
+          role: updatedUser.role || 'user',
+          preferredLanguage: updatedUser.preferredLanguage || 'en',
+          imageUrl: updatedUser.imageUrl || null
+        }
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
+  // Change password
+  app.put("/api/change-password", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Current password and new password are required" });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "New password must be at least 6 characters long" });
+      }
+
+      // Verify current password
+      const isCurrentValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isCurrentValid) {
+        return res.status(400).json({ error: "Current password is incorrect" });
+      }
+
+      // Hash new password
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update password
+      await storage.updateUser(user.id, { password: hashedNewPassword });
+
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      res.status(500).json({ error: "Failed to change password" });
+    }
+  });
+
+  // Get store connections
+  app.get("/api/store-connections", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      const storeConnections = await storage.getStoreConnections(user.id);
+      
+      // Redact sensitive credentials from response
+      const safeConnections = storeConnections.map(conn => ({
+        id: conn.id,
+        platform: conn.platform,
+        storeName: conn.storeName,
+        storeUrl: conn.storeUrl,
+        status: conn.status,
+        lastSyncAt: conn.lastSyncAt,
+        createdAt: conn.createdAt,
+        updatedAt: conn.updatedAt
+      }));
+      
+      res.json({ storeConnections: safeConnections });
+    } catch (error) {
+      console.error("Error fetching store connections:", error);
+      res.status(500).json({ error: "Failed to fetch store connections" });
+    }
+  });
+
+  // Add store connection
+  app.post("/api/store-connections", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      const { storeName, platform, storeUrl, accessToken } = req.body;
+
+      if (!storeName || !platform || !storeUrl || !accessToken) {
+        return res.status(400).json({ error: "Store name, platform, store URL, and access token are required" });
+      }
+
+      const storeConnection = await storage.createStoreConnection({
+        userId: user.id,
+        storeName: storeName.trim(),
+        platform,
+        storeUrl: storeUrl.trim(),
+        accessToken: accessToken,
+        status: "active"
+      });
+
+      // Return safe store connection object without sensitive credentials
+      res.json({ 
+        storeConnection: {
+          id: storeConnection.id,
+          platform: storeConnection.platform,
+          storeName: storeConnection.storeName,
+          storeUrl: storeConnection.storeUrl,
+          status: storeConnection.status,
+          createdAt: storeConnection.createdAt,
+          updatedAt: storeConnection.updatedAt
+        }
+      });
+    } catch (error) {
+      console.error("Error creating store connection:", error);
+      res.status(500).json({ error: "Failed to create store connection" });
+    }
+  });
+
+  // Delete store connection
+  app.delete("/api/store-connections/:id", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      const { id } = req.params;
+
+      // Get user's store connections to verify ownership
+      const userStoreConnections = await storage.getStoreConnections(user.id);
+      const storeConnection = userStoreConnections.find(sc => sc.id === id);
+      
+      if (!storeConnection) {
+        return res.status(404).json({ error: "Store connection not found" });
+      }
+
+      await storage.deleteStoreConnection(id);
+      res.json({ message: "Store connection deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting store connection:", error);
+      res.status(500).json({ error: "Failed to delete store connection" });
+    }
   });
 
   // AI Product Description Generator
@@ -810,6 +973,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error changing subscription plan:", error);
       res.status(500).json({ 
         error: "Failed to change subscription plan",
+        message: error.message 
+      });
+    }
+  });
+
+  // Cancel subscription
+  app.post("/api/subscription/cancel", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      if (!user.stripeSubscriptionId) {
+        return res.status(400).json({ error: "No active subscription found" });
+      }
+
+      if (stripe) {
+        // Update the subscription to cancel at period end
+        const subscription = await stripe.subscriptions.update(
+          user.stripeSubscriptionId,
+          { cancel_at_period_end: true }
+        );
+
+        // Update user's subscription status in database
+        await storage.updateUser(user.id, { 
+          plan: user.plan // Keep current plan until period end
+        });
+
+        res.json({ 
+          message: "Subscription will be cancelled at the end of the current billing period",
+          subscription: {
+            id: subscription.id,
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            current_period_end: subscription.current_period_end
+          }
+        });
+      } else {
+        return res.status(500).json({ error: "Stripe not configured" });
+      }
+    } catch (error: any) {
+      console.error("Error cancelling subscription:", error);
+      res.status(500).json({ 
+        error: "Failed to cancel subscription",
+        message: error.message 
+      });
+    }
+  });
+
+  // Reactivate subscription
+  app.post("/api/subscription/reactivate", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      if (!user.stripeSubscriptionId) {
+        return res.status(400).json({ error: "No subscription found" });
+      }
+
+      if (stripe) {
+        // Update the subscription to not cancel at period end
+        const subscription = await stripe.subscriptions.update(
+          user.stripeSubscriptionId,
+          { cancel_at_period_end: false }
+        );
+
+        res.json({ 
+          message: "Subscription has been reactivated",
+          subscription: {
+            id: subscription.id,
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            current_period_end: subscription.current_period_end
+          }
+        });
+      } else {
+        return res.status(500).json({ error: "Stripe not configured" });
+      }
+    } catch (error: any) {
+      console.error("Error reactivating subscription:", error);
+      res.status(500).json({ 
+        error: "Failed to reactivate subscription",
+        message: error.message 
+      });
+    }
+  });
+
+  // Download invoice PDF
+  app.get("/api/invoices/:id/download", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = req.user!;
+
+      if (stripe) {
+        // Get the invoice from Stripe
+        const invoice = await stripe.invoices.retrieve(id);
+        
+        // Verify the invoice belongs to the current user
+        if (invoice.customer !== user.stripeCustomerId) {
+          return res.status(403).json({ error: "Access denied" });
+        }
+
+        if (!invoice.invoice_pdf) {
+          return res.status(404).json({ error: "PDF not available for this invoice" });
+        }
+
+        // Fetch the PDF from Stripe
+        const response = await fetch(invoice.invoice_pdf);
+        if (!response.ok) {
+          throw new Error("Failed to fetch PDF from Stripe");
+        }
+
+        const pdfBuffer = await response.arrayBuffer();
+        
+        // Set headers for PDF download
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="invoice-${invoice.number || id}.pdf"`);
+        res.setHeader('Content-Length', pdfBuffer.byteLength);
+        
+        // Send the PDF
+        res.send(Buffer.from(pdfBuffer));
+      } else {
+        return res.status(500).json({ error: "Stripe not configured" });
+      }
+    } catch (error: any) {
+      console.error("Error downloading invoice:", error);
+      res.status(500).json({ 
+        error: "Failed to download invoice",
         message: error.message 
       });
     }

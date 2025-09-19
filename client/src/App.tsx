@@ -18,6 +18,8 @@ import ContentROI from "@/pages/content-roi";
 import RevenueImpact from "@/pages/revenue-impact";
 import SeoRankingTracker from "@/pages/seo-ranking-tracker";
 import ABTestResults from "@/pages/ab-test-results";
+import ProfileAccount from "@/pages/profile-account";
+import SubscriptionBilling from "@/pages/subscription-billing";
 import { useAuth } from "@/lib/auth";
 
 function Router() {
@@ -47,6 +49,8 @@ function Router() {
       <Route path="/analytics/revenue-impact" component={user ? RevenueImpact : () => { window.location.href = "/auth/login"; return null; }} />
       <Route path="/analytics/seo-ranking-tracker" component={user ? SeoRankingTracker : () => { window.location.href = "/auth/login"; return null; }} />
       <Route path="/analytics/ab-test-results" component={user ? ABTestResults : () => { window.location.href = "/auth/login"; return null; }} />
+      <Route path="/settings/profile-account" component={user ? ProfileAccount : () => { window.location.href = "/auth/login"; return null; }} />
+      <Route path="/settings/subscription-billing" component={user ? SubscriptionBilling : () => { window.location.href = "/auth/login"; return null; }} />
       <Route component={NotFound} />
     </Switch>
   );
